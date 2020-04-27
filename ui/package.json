@@ -99,6 +99,7 @@
     "ember-template-lint": "^2.9.0",
     "ember-test-selectors": "^2.1.0",
     "ember-truth-helpers": "^2.0.0",
+    "emoji-regex": "^9.0.0",
     "eslint": "^5.16.0",
     "eslint-plugin-ember": "^7.7.2",
     "eslint-plugin-ember-a11y-testing": "a11y-tool-sandbox/eslint-plugin-ember-a11y-testing#ca31c9698c7cb105f1c9761d98fcaca7d6874459",
