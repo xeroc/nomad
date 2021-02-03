@@ -100,7 +100,7 @@ export default class ExecController extends Controller {
       this.terminal.writeln('Customize your command, then hit ‘return’ to run.');
       this.terminal.writeln('');
       this.terminal.write(
-        `$ nomad alloc exec -i -t -task ${escapeTaskName(taskName)} ${
+        `$ nomad alloc exec -i -t -task ${escapeTaskName(this.emojiRegex, taskName)} ${
           this.taskState.allocation.shortId
         } `
       );

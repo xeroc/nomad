@@ -1,6 +1,4 @@
-import emojiRegex from 'emoji-regex';
-
-export default function escapeTaskName(taskName) {
+export default function escapeTaskName(emojiRegex, taskName) {
   // Store emoji character components differently to bypass escaping:
   // "string🥳" becomes "stringUNICODE55358.UNICODE56691."
   const taskNameWithTransformedEmoji = taskName.replace(emojiRegex(), emoji => {

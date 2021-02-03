@@ -28,12 +28,14 @@ export default class ExecRoute extends Route.extend(WithWatchers) {
       .catch(notifyError(this));
 
     const xtermImport = import('xterm').then(module => module.Terminal);
+    const emojiRegexImport = import('emoji-regex').then(module => module.default);
 
-    return Promise.all([jobPromise, xtermImport]);
+    return Promise.all([jobPromise, emojiRegexImport, xtermImport]);
   }
 
-  setupController(controller, [job, Terminal]) {
+  setupController(controller, [job, emojiRegex, Terminal]) {
     super.setupController(controller, job);
+    controller.emojiRegex = emojiRegex;
     controller.setUpTerminal(Terminal);
   }
 
