@@ -16,6 +16,7 @@ import (
 	"time"
 
 	ctestutils "github.com/hashicorp/nomad/client/testutil"
+	"github.com/hashicorp/nomad/drivers/shared/executor"
 	"github.com/hashicorp/nomad/helper/pluginutils/hclutils"
 	"github.com/hashicorp/nomad/helper/testlog"
 	"github.com/hashicorp/nomad/helper/testtask"
@@ -273,7 +274,7 @@ func TestExecDriver_StartWaitRecover(t *testing.T) {
 // task dies, the orphans in the PID namespaces are killed by the kernel
 func TestExecDriver_NoOrphans(t *testing.T) {
 	t.Parallel()
-	require := require.New(t)
+	r := require.New(t)
 	ctestutils.ExecCompatible(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -282,6 +283,17 @@ func TestExecDriver_NoOrphans(t *testing.T) {
 	d := NewExecDriver(ctx, testlog.HCLogger(t))
 	harness := dtestutil.NewDriverHarness(t, d)
 	defer harness.Kill()
+
+	config := &Config{
+		NoPivotRoot:    true,
+		DefaultModePID: executor.IsoModePrivate,
+		DefaultModeIPC: executor.IsoModePrivate,
+	}
+
+	var data []byte
+	r.NoError(basePlug.MsgPackEncode(&data, config))
+	baseConfig := &basePlug.Config{PluginConfig: data}
+	r.NoError(harness.SetConfig(baseConfig))
 
 	task := &drivers.TaskConfig{
 		ID:   uuid.Generate(),
@@ -295,21 +307,21 @@ func TestExecDriver_NoOrphans(t *testing.T) {
 	taskConfig["command"] = "/bin/sh"
 	// print the child PID in the task PID namespace, then sleep for 5 seconds to give us a chance to examine processes
 	taskConfig["args"] = []string{"-c", fmt.Sprintf(`sleep 3600 & sleep 20`)}
-	require.NoError(task.EncodeConcreteDriverConfig(&taskConfig))
+	r.NoError(task.EncodeConcreteDriverConfig(&taskConfig))
 
 	handle, _, err := harness.StartTask(task)
-	require.NoError(err)
+	r.NoError(err)
 	defer harness.DestroyTask(task.ID, true)
 
 	waitCh, err := harness.WaitTask(context.Background(), handle.Config.ID)
-	require.NoError(err)
+	r.NoError(err)
 
-	require.NoError(harness.WaitUntilStarted(task.ID, 1*time.Second))
+	r.NoError(harness.WaitUntilStarted(task.ID, 1*time.Second))
 
 	var childPids []int
 	taskState := TaskState{}
 	testutil.WaitForResult(func() (bool, error) {
-		require.NoError(handle.GetDriverState(&taskState))
+		r.NoError(handle.GetDriverState(&taskState))
 		if taskState.Pid == 0 {
 			return false, fmt.Errorf("task PID is zero")
 		}
@@ -331,14 +343,14 @@ func TestExecDriver_NoOrphans(t *testing.T) {
 		}
 		return true, nil
 	}, func(err error) {
-		require.NoError(err)
+		r.NoError(err)
 	})
 
 	select {
 	case result := <-waitCh:
-		require.True(result.Successful(), "command failed: %#v", result)
+		r.True(result.Successful(), "command failed: %#v", result)
 	case <-time.After(30 * time.Second):
-		require.Fail("timeout waiting for task to shutdown")
+		r.Fail("timeout waiting for task to shutdown")
 	}
 
 	// isProcessRunning returns an error if process is not running
@@ -357,7 +369,7 @@ func TestExecDriver_NoOrphans(t *testing.T) {
 	}
 
 	// task should be dead
-	require.Error(isProcessRunning(taskState.Pid))
+	r.Error(isProcessRunning(taskState.Pid))
 
 	// all children should eventually be killed by OS
 	testutil.WaitForResult(func() (bool, error) {
@@ -372,7 +384,7 @@ func TestExecDriver_NoOrphans(t *testing.T) {
 		}
 		return true, nil
 	}, func(err error) {
-		require.NoError(err)
+		r.NoError(err)
 	})
 }
 
@@ -711,7 +723,7 @@ config {
 
 func TestExecDriver_NoPivotRoot(t *testing.T) {
 	t.Parallel()
-	require := require.New(t)
+	r := require.New(t)
 	ctestutils.ExecCompatible(t)
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -720,11 +732,16 @@ func TestExecDriver_NoPivotRoot(t *testing.T) {
 	d := NewExecDriver(ctx, testlog.HCLogger(t))
 	harness := dtestutil.NewDriverHarness(t, d)
 
-	config := &Config{NoPivotRoot: true}
+	config := &Config{
+		NoPivotRoot:    true,
+		DefaultModePID: executor.IsoModePrivate,
+		DefaultModeIPC: executor.IsoModePrivate,
+	}
+
 	var data []byte
-	require.NoError(basePlug.MsgPackEncode(&data, config))
+	r.NoError(basePlug.MsgPackEncode(&data, config))
 	bconfig := &basePlug.Config{PluginConfig: data}
-	require.NoError(harness.SetConfig(bconfig))
+	r.NoError(harness.SetConfig(bconfig))
 
 	task := &drivers.TaskConfig{
 		ID:        uuid.Generate(),
@@ -738,9 +755,9 @@ func TestExecDriver_NoPivotRoot(t *testing.T) {
 		Command: "/bin/sleep",
 		Args:    []string{"100"},
 	}
-	require.NoError(task.EncodeConcreteDriverConfig(&tc))
+	r.NoError(task.EncodeConcreteDriverConfig(&tc))
 
 	handle, _, err := harness.StartTask(task)
-	require.NoError(err)
-	require.NotNil(handle)
+	r.NoError(err)
+	r.NotNil(handle)
 }
