@@ -36,6 +36,12 @@ import (
 
 const (
 	defaultCgroupParent = "/nomad"
+
+	// IsoModePrivate represents the private isolation mode for a namespace
+	IsoModePrivate = "private"
+
+	// IsoModeHost represents the host isolation mode for a namespace
+	IsoModeHost = "host"
 )
 
 var (
@@ -562,6 +568,19 @@ func supportedCaps() []string {
 	return allCaps
 }
 
+func configureNamespaces(pidMode, ipcMode string) lconfigs.Namespaces {
+	namespaces := lconfigs.Namespaces{
+		{Type: lconfigs.NEWNS},
+	}
+	if pidMode == IsoModePrivate {
+		namespaces = append(namespaces, lconfigs.Namespace{Type: lconfigs.NEWPID})
+	}
+	if ipcMode == IsoModePrivate {
+		namespaces = append(namespaces, lconfigs.Namespace{Type: lconfigs.NEWIPC})
+	}
+	return namespaces
+}
+
 // configureIsolation prepares the isolation primitives of the container.
 // The process runs in a container configured with the following:
 //
@@ -578,19 +597,15 @@ func configureIsolation(cfg *lconfigs.Config, command *ExecCommand) error {
 	// disable pivot_root if set in the driver's configuration
 	cfg.NoPivotRoot = command.NoPivotRoot
 
-	// launch with mount namespace
-	cfg.Namespaces = lconfigs.Namespaces{
-		{Type: lconfigs.NEWNS},
-		{Type: lconfigs.NEWPID}, // todo(shoenig) make optional
-		{Type: lconfigs.NEWIPC}, // todo(shoenig) make optional
-	}
-
 	if command.NetworkIsolation != nil {
 		cfg.Namespaces = append(cfg.Namespaces, lconfigs.Namespace{
 			Type: lconfigs.NEWNET,
 			Path: command.NetworkIsolation.Path,
 		})
 	}
+
+	// setup default namespaces as configured
+	cfg.Namespaces = configureNamespaces(command.DefaultModePID, command.DefaultModeIPC)
 
 	// paths to mask using a bind mount to /dev/null to prevent reading
 	cfg.MaskPaths = []string{

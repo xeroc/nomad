@@ -142,15 +142,15 @@ type Config struct {
 
 func (c *Config) validate() error {
 	switch c.DefaultModePID {
-	case "private", "host":
+	case executor.IsoModePrivate, executor.IsoModeHost:
 	default:
-		return fmt.Errorf("default_pid_mode must be %q or %q, got %q", "private", "host", c.DefaultModePID)
+		return fmt.Errorf("default_pid_mode must be %q or %q, got %q", executor.IsoModePrivate, executor.IsoModeHost, c.DefaultModePID)
 	}
 
 	switch c.DefaultModeIPC {
-	case "private", "host":
+	case executor.IsoModePrivate, executor.IsoModeHost:
 	default:
-		return fmt.Errorf("default_ipc_mode must be %q or %q, got %q", "private", "host", c.DefaultModeIPC)
+		return fmt.Errorf("default_ipc_mode must be %q or %q, got %q", executor.IsoModePrivate, executor.IsoModeHost, c.DefaultModeIPC)
 	}
 
 	return nil
