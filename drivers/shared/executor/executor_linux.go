@@ -581,8 +581,8 @@ func configureIsolation(cfg *lconfigs.Config, command *ExecCommand) error {
 	// launch with mount namespace
 	cfg.Namespaces = lconfigs.Namespaces{
 		{Type: lconfigs.NEWNS},
-		{Type: lconfigs.NEWPID},
-		{Type: lconfigs.NEWIPC},
+		{Type: lconfigs.NEWPID}, // todo(shoenig) make optional
+		{Type: lconfigs.NEWIPC}, // todo(shoenig) make optional
 	}
 
 	if command.NetworkIsolation != nil {

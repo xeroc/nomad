@@ -65,6 +65,14 @@ var (
 			hclspec.NewAttr("no_pivot_root", "bool", false),
 			hclspec.NewLiteral("false"),
 		),
+		"default_pid_mode": hclspec.NewDefault(
+			hclspec.NewAttr("default_pid_mode", "string", false),
+			hclspec.NewLiteral(`"private"`),
+		),
+		"default_ipc_mode": hclspec.NewDefault(
+			hclspec.NewAttr("default_ipc_mode", "string", false),
+			hclspec.NewLiteral(`"private"`),
+		),
 	})
 
 	// taskConfigSpec is the hcl specification for the driver config section of
@@ -122,6 +130,14 @@ type Config struct {
 	// NoPivotRoot disables the use of pivot_root, useful when the root partition
 	// is on ramdisk
 	NoPivotRoot bool `codec:"no_pivot_root"`
+
+	// DefaultModePID is the default PID isolation set for all tasks using
+	// exec-based task drivers.
+	DefaultModePID string `codec:"default_pid_mode"`
+
+	// DefaultModeIPC is the default IPC isolation set for all tasks using
+	// exec-based task drivers.
+	DefaultModeIPC string `codec:"default_ipc_mode"`
 }
 
 // TaskConfig is the driver configuration of a task within a job
@@ -338,6 +354,9 @@ func (d *Driver) StartTask(cfg *drivers.TaskConfig) (*drivers.TaskHandle, *drive
 		return nil, nil, fmt.Errorf("failed to decode driver config: %v", err)
 	}
 
+	fmt.Println("SH PID:", d.config.DefaultModePID)
+	fmt.Println("SH IPC:", d.config.DefaultModeIPC)
+
 	d.logger.Info("starting task", "driver_cfg", hclog.Fmt("%+v", driverConfig))
 	handle := drivers.NewTaskHandle(taskHandleVersion)
 	handle.Config = cfg
@@ -383,6 +402,8 @@ func (d *Driver) StartTask(cfg *drivers.TaskConfig) (*drivers.TaskHandle, *drive
 		Mounts:           cfg.Mounts,
 		Devices:          cfg.Devices,
 		NetworkIsolation: cfg.NetworkIsolation,
+		DefaultModePID:   d.config.DefaultModePID,
+		DefaultModeIPC:   d.config.DefaultModeIPC,
 	}
 
 	ps, err := exec.Launch(execCmd)

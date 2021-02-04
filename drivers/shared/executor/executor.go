@@ -132,7 +132,14 @@ type ExecCommand struct {
 	// Devices are the the device nodes to be created in isolation environment
 	Devices []*drivers.DeviceConfig
 
+	// NetworkIsolation is the network isolation configuration.
 	NetworkIsolation *drivers.NetworkIsolationSpec
+
+	// DefaultModePID is the default PID isolation mode (private or host).
+	DefaultModePID string
+
+	// DefaultModeIPC is the default IPC isolation mode (private or host).
+	DefaultModeIPC string
 }
 
 // SetWriters sets the writer for the process stdout and stderr. This should
