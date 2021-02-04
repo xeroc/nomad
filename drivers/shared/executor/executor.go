@@ -34,6 +34,12 @@ const (
 	// ExecutorVersionPre0_9 is the version of executor use prior to the release
 	// of 0.9.x
 	ExecutorVersionPre0_9 = "1.1.0"
+
+	// IsoModePrivate represents the private isolation mode for a namespace
+	IsoModePrivate = "private"
+
+	// IsoModeHost represents the host isolation mode for a namespace
+	IsoModeHost = "host"
 )
 
 var (

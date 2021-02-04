@@ -36,12 +36,6 @@ import (
 
 const (
 	defaultCgroupParent = "/nomad"
-
-	// IsoModePrivate represents the private isolation mode for a namespace
-	IsoModePrivate = "private"
-
-	// IsoModeHost represents the host isolation mode for a namespace
-	IsoModeHost = "host"
 )
 
 var (
