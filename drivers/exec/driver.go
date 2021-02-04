@@ -140,6 +140,22 @@ type Config struct {
 	DefaultModeIPC string `codec:"default_ipc_mode"`
 }
 
+func (c *Config) validate() error {
+	switch c.DefaultModePID {
+	case "private", "host":
+	default:
+		return fmt.Errorf("default_pid_mode must be %q or %q, got %q", "private", "host", c.DefaultModePID)
+	}
+
+	switch c.DefaultModeIPC {
+	case "private", "host":
+	default:
+		return fmt.Errorf("default_ipc_mode must be %q or %q, got %q", "private", "host", c.DefaultModeIPC)
+	}
+
+	return nil
+}
+
 // TaskConfig is the driver configuration of a task within a job
 type TaskConfig struct {
 	Command string   `codec:"command"`
@@ -203,6 +219,10 @@ func (d *Driver) SetConfig(cfg *base.Config) error {
 		if err := base.MsgPackDecode(cfg.PluginConfig, &config); err != nil {
 			return err
 		}
+	}
+
+	if err := config.validate(); err != nil {
+		return err
 	}
 
 	d.config = config
