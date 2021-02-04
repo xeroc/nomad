@@ -265,7 +265,7 @@ func (sc *ServiceCheck) validate() error {
 
 	// Validate OnUpdate
 	switch sc.OnUpdate {
-	case OnUpdateIgnore, OnUpdateRequireHealthy, OnUpdateIgnoreWarn:
+	case "", OnUpdateIgnore, OnUpdateRequireHealthy, OnUpdateIgnoreWarn:
 		// OK
 	default:
 		return fmt.Errorf("on_update must be %q, %q, or %q; got %q", OnUpdateRequireHealthy, OnUpdateIgnoreWarn, OnUpdateIgnore, sc.OnUpdate)
